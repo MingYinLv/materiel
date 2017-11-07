@@ -4,13 +4,33 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/hex"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"io/ioutil"
 	"os"
+	"fmt"
 )
 
+var privateKey, publicKey []byte
+
+func init() {
+	pri, err := ioutil.ReadFile("private.pem")
+	if err != nil {
+		panic(err)
+	}
+	privateKey = pri
+
+	pub, err := ioutil.ReadFile("public.pem")
+	if err != nil {
+		panic(err)
+	}
+	publicKey = pub
+}
+
 func RsaEncrypt(origData []byte) ([]byte, error) {
-	block, _ := pem.Decode([]byte{})
+	block, _ := pem.Decode(publicKey)
 	if block == nil {
 		return nil, errors.New("public key error")
 	}
@@ -24,7 +44,7 @@ func RsaEncrypt(origData []byte) ([]byte, error) {
 
 // 解密
 func RsaDecrypt(ciphertext []byte) ([]byte, error) {
-	block, _ := pem.Decode([]byte{})
+	block, _ := pem.Decode(privateKey)
 	if block == nil {
 		return nil, errors.New("private key error!")
 	}
@@ -43,7 +63,7 @@ func GenRsaKey(bits int) error {
 	}
 	derStream := x509.MarshalPKCS1PrivateKey(privateKey)
 	block := &pem.Block{
-		Type:  "私钥",
+		Type:  "private",
 		Bytes: derStream,
 	}
 	file, err := os.Create("private.pem")
@@ -61,7 +81,7 @@ func GenRsaKey(bits int) error {
 		return err
 	}
 	block = &pem.Block{
-		Type:  "公钥",
+		Type:  "public",
 		Bytes: derPkix,
 	}
 	file, err = os.Create("public.pem")
@@ -73,4 +93,29 @@ func GenRsaKey(bits int) error {
 		return err
 	}
 	return nil
+}
+
+func RsaEncode(data interface{}) string {
+	fmt.Println(data)
+	js, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	tokenByte, err := RsaEncrypt([]byte(string(js)))
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(tokenByte)
+}
+
+func RsaDecode(data string) string {
+	tokenByte, err := hex.DecodeString(data)
+	if err != nil {
+		panic(err)
+	}
+	tokenByte1, err := RsaDecrypt(tokenByte)
+	if err != nil {
+		panic(err)
+	}
+	return string(tokenByte1)
 }
