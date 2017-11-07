@@ -10,7 +10,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"fmt"
 )
 
 var privateKey, publicKey []byte
@@ -96,7 +95,6 @@ func GenRsaKey(bits int) error {
 }
 
 func RsaEncode(data interface{}) string {
-	fmt.Println(data)
 	js, err := json.Marshal(data)
 	if err != nil {
 		panic(err)

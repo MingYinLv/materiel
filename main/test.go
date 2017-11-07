@@ -2,8 +2,8 @@ package main
 
 import (
 	"materiel/src/util"
+	"fmt"
 )
 
 func main() {
-	util.GenRsaKey(256)
 }
