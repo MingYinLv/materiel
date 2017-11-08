@@ -18,7 +18,7 @@ func Conn() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("Connect Successify!")
+	fmt.Println("Connect Mysql Successify!")
 }
 
 func Close() {

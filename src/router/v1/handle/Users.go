@@ -51,6 +51,10 @@ func UserLogin(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"msg":          "登录成功",
 				"access_token": token,
+				"token_type": "login",
+				"expires_in": 3600,
+				"refresh_token": "",
+
 			})
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{
