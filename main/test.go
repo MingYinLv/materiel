@@ -1,23 +1,10 @@
 package main
 
 import (
-	"materiel/src/util"
 	"fmt"
-	"encoding/hex"
+	"materiel/src/util"
 )
 
 func main() {
-	aesEnc := util.AesEncrypt{}
-	arrEncrypt, err := aesEnc.Encrypt("1")
-	if err != nil {
-		fmt.Println(arrEncrypt)
-		return
-	}
-	fmt.Println(hex.EncodeToString(arrEncrypt))
-	strMsg, err := aesEnc.Decrypt(arrEncrypt)
-	if err != nil {
-		fmt.Println(arrEncrypt)
-		return
-	}
-	fmt.Println(strMsg)
+	fmt.Println(util.RsaDecode("71e22ff776881e86e6ada39760e16b2ace15e06b14afaa7ba296accbfb1ff587"))
 }

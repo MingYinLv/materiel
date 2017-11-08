@@ -1,4 +1,4 @@
-package redis
+package redisDB
 
 import (
 	"fmt"
@@ -22,16 +22,18 @@ func init() {
 	fmt.Println("Connect Redis Successify!")
 }
 
-func Set(key string, value string, duration time.Duration) {
+func Set(key string, value interface{}, duration time.Duration) {
 	err := client.Set(key, value, duration).Err()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func Get(key string) string {
+func Get(key string) interface{} {
 	val, err := client.Get(key).Result()
-	if err != nil {
+	if err == redis.Nil {
+		return err
+	} else if err != nil {
 		panic(err)
 	}
 	return val

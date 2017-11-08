@@ -12,6 +12,7 @@ func main() {
 	{
 		user := v1.Group("/user", handle.CheckLogin)
 		user.GET("/info", handle.Info)
+		user.POST("/refresh_token", handle.RefreshToken)
 		v1.POST("/login", handle.UserLogin)
 	}
 	router.Run(":3333")
