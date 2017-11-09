@@ -8,25 +8,25 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
-	"io/ioutil"
 	"os"
 )
 
-var privateKey, publicKey []byte
+var privateKey = []byte(`
+-----BEGIN private-----
+MIGrAgEAAiEAtRL3XCvkjBL/iy5zVJac3KUlxdj+Q7dn9eVKtYN/f3MCAwEAAQIh
+AJrv0KKYmCXXN7vTEjIl8a9Uzzk7wMTj2TZSaoQ4kx45AhEA69+A0q1O2INo2H+g
+UdsW5QIRAMSGahSCYDxTx7WU1QoXv3cCEQCID0kUPfx5UHQuTpCAJ00xAhA0YY9M
+wCNecQY+A9l0wzepAhA9ZrXToVLDW140c/WV/mgQ
+-----END private-----
+`)
+var publicKey = []byte(`
+-----BEGIN public-----
+MDwwDQYJKoZIhvcNAQEBBQADKwAwKAIhALUS91wr5IwS/4suc1SWnNylJcXY/kO3
+Z/XlSrWDf39zAgMBAAE=
+-----END public-----
 
-func init() {
-	pri, err := ioutil.ReadFile("private.pem")
-	if err != nil {
-		panic(err)
-	}
-	privateKey = pri
+`)
 
-	pub, err := ioutil.ReadFile("public.pem")
-	if err != nil {
-		panic(err)
-	}
-	publicKey = pub
-}
 
 func RsaEncrypt(origData []byte) ([]byte, error) {
 	block, _ := pem.Decode(publicKey)

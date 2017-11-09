@@ -45,3 +45,27 @@ func AddUser(user Schema.User) (int64, error) {
 	stms.Close()
 	return result.LastInsertId()
 }
+
+func UpdateUser(user Schema.User) (int64, error) {
+	stms, err := db.DB.Prepare("update users set username=?,password=?,nickname=?,salt=? where id=?")
+	if err != nil {
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	result, err := stms.Exec(user.Username, user.Password, user.Nickname, user.Salt, user.User_id)
+	stms.Close()
+	return result.RowsAffected()
+}
+
+func DeleteUserById(id int64) (int64, error) {
+	stms, err := db.DB.Prepare("delete from users WHERE id = ?")
+	if err != nil {
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+
+	result, err := stms.Exec(id)
+	if err != nil {
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	stms.Close()
+	return result.RowsAffected()
+}
