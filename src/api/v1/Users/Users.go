@@ -1,47 +1,57 @@
 package Users
 
 import "materiel/src/db/Schema"
-import "materiel/src/db"
+import (
+	"materiel/src/db"
+	"time"
+)
 
 func FindUserByUsername(name string) Schema.User {
-	stms, err := db.DB.Prepare("SELECT id,username,password,nickname,salt FROM users WHERE username = ?")
+	stms, err := db.DB.Prepare("SELECT id,username,password,nickname,salt,create_at FROM users WHERE username = ?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
 
 	row := stms.QueryRow(name)
 
-	var user_id int64
+	var user_id, create_at int64
 	var username, password, nickname, salt string
 
-	err = row.Scan(&user_id, &username, &password, &nickname, &salt)
+	err = row.Scan(&user_id, &username, &password, &nickname, &salt, &create_at)
+	if err != nil {
+		panic(err.Error())
+	}
 	stms.Close()
-	return Schema.User{user_id, username, password, nickname, salt}
+	return Schema.User{user_id, username, password, nickname, salt, create_at}
 }
 
 func FindUserById(id int64) Schema.User {
-	stms, err := db.DB.Prepare("SELECT id,username,password,nickname,salt FROM users WHERE id = ?")
+	stms, err := db.DB.Prepare("SELECT id,username,password,nickname,salt,create_at FROM users WHERE id = ?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
 
 	row := stms.QueryRow(id)
 
-	var user_id int64
+	var user_id, create_at int64
 	var username, password, nickname, salt string
 
-	err = row.Scan(&user_id, &username, &password, &nickname, &salt)
+	err = row.Scan(&user_id, &username, &password, &nickname, &salt, &create_at)
+	if err != nil {
+		panic(err.Error())
+	}
 	stms.Close()
-	return Schema.User{user_id, username, password, nickname, salt}
+	return Schema.User{user_id, username, password, nickname, salt, create_at}
 }
 
 func AddUser(user Schema.User) (int64, error) {
-	stms, err := db.DB.Prepare("insert into users(username, nickname, password, salt) values(?, ?, ?, ?)")
+	stms, err := db.DB.Prepare("insert into users(username, nickname, password, salt, create_at) values(?, ?, ?, ?, ?)")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
 
-	result, err := stms.Exec(user.Username, user.Nickname, user.Password, user.Salt)
+	t := time.Now()
+	result, err := stms.Exec(user.Username, user.Nickname, user.Password, user.Salt, t.Unix())
 	stms.Close()
 	return result.LastInsertId()
 }

@@ -13,4 +13,5 @@ type Log struct {
 	Number      int64  `json:"number"`
 	Type        int64  `json:"type"`
 	Remark      string `json:"remark"`
+	CreateAt    int64  `json:"create_at"`
 }

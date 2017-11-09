@@ -10,6 +10,7 @@ type User struct {
 	Password string `json:"_"`
 	Nickname string `json:"nickname"`
 	Salt     string `json:"_"`
+	CreateAt int64  `json:"create_at"`
 }
 
 func (u *User) MarshalBinary() (data []byte, err error) {
