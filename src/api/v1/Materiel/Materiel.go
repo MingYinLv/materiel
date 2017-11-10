@@ -1,10 +1,15 @@
 package Materiel
 
 import (
-	"fmt"
 	"materiel/src/db"
 	"materiel/src/db/Schema"
 	//"materiel/src/util"
+	"bytes"
+	"database/sql"
+	"fmt"
+	"materiel/src/util"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,8 +19,50 @@ import (
 //	return
 //}
 
+func FindList(filter util.SearchFilter) []Schema.Materiel {
+	var result []Schema.Materiel
+	var buffer bytes.Buffer
+	buffer.WriteString("SELECT * FROM materiel where 1=1")
+	if strings.TrimSpace(filter.Keyword) != "" {
+		buffer.WriteString(" and name like '%")
+		buffer.WriteString(filter.Keyword)
+		buffer.WriteString("%'")
+	}
+	buffer.WriteString(" order by ")
+	buffer.WriteString(filter.SortBy)
+	buffer.WriteString(" ")
+	buffer.WriteString(filter.Order)
+	buffer.WriteString(" limit ")
+	buffer.WriteString(strconv.FormatInt((filter.Page-1)*filter.Size, 10))
+	buffer.WriteString(",")
+	buffer.WriteString(strconv.FormatInt(filter.Size, 10))
+	fmt.Println(buffer.String())
+	stms, err := db.DB.Prepare(buffer.String())
+	if err != nil {
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	defer stms.Close()
+
+	rows, err := stms.Query()
+	defer rows.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for rows.Next() {
+		var materiel_id, number, create_at int64
+		var name, description string
+		err = rows.Scan(&materiel_id, &name, &number, &description, &create_at)
+		if err != nil {
+			panic(err.Error())
+		}
+		result = append(result, Schema.Materiel{materiel_id, name, number, description, create_at})
+	}
+	return result
+}
+
 func FindById(id int64) Schema.Materiel {
-	stms, err := db.DB.Prepare("SELECT id,name,number,description,create_at FROM users WHERE id = ?")
+	stms, err := db.DB.Prepare("SELECT id,name,number,description,create_at FROM materiel WHERE id = ?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
@@ -26,21 +73,26 @@ func FindById(id int64) Schema.Materiel {
 	var name, description string
 
 	err = row.Scan(&materiel_id, &name, &number, &description, &create_at)
+	if err == sql.ErrNoRows {
+		stms.Close()
+		return Schema.Materiel{Id: 0}
+	} else if err != nil {
+		panic(err.Error())
+	}
 	stms.Close()
 	return Schema.Materiel{materiel_id, name, number, description, create_at}
 }
 
-func AddMateriel(materiel Schema.Materiel) (int64, error) {
+func AddMateriel(materiel *Schema.Materiel, log *Schema.Log) int64 {
 	tx, _ := db.DB.Begin()
 	stms, err := tx.Prepare("insert into materiel(name, number, description, create_at) values(?, ?, ?, ?)")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
 
-	t := time.Now()
-	result, err := stms.Exec(materiel.Name, materiel.Number, materiel.Description, t.Unix())
+	unix := time.Now().Unix()
+	result, err := stms.Exec(materiel.Name, materiel.Number, materiel.Description, unix)
 	if err != nil {
-		tx.Rollback()
 		panic(err.Error())
 	}
 
@@ -52,25 +104,21 @@ func AddMateriel(materiel Schema.Materiel) (int64, error) {
 	}
 	stms.Close()
 
-	stms, err = tx.Prepare("insert into log(materiel_id, number, type, remark, create_at) values(?, ?, ?, ?, ?)")
+	stms, err = tx.Prepare("insert into log(materiel_id, number, type,operator,operate_time, remark, create_at) values(?, ?,?,?, ?, ?, ?)")
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
 	}
 
-	log := Schema.Log{
-		Materiel_id: insertId,
-		Number:      materiel.Number,
-		Type:        Schema.INSERT,
-		Remark:      fmt.Sprintf("新增物料: %s,数量:%d", materiel.Name, materiel.Number),
-	}
-
-	result, err = stms.Exec(log.Materiel_id, log.Number, log.Type, log.Remark, t.Unix())
+	result, err = stms.Exec(insertId, log.Number, log.Type, log.Operator, log.OperateTime, log.Remark, unix)
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
 	}
-	_, err = result.LastInsertId()
+	insertLogId, err := result.LastInsertId()
+	log.Id = insertLogId
+	log.CreateAt = unix
+	log.MaterielId = insertId
 
 	if err != nil {
 		tx.Rollback()
@@ -79,21 +127,23 @@ func AddMateriel(materiel Schema.Materiel) (int64, error) {
 
 	stms.Close()
 	tx.Commit()
-	return insertId, err
+	materiel.Id = insertId
+	materiel.CreateAt = unix
+	return insertId
 }
 
 /*
 *	更新物料数量，记录日志
  */
-func UpdateMateriel(materiel Schema.Materiel, log Schema.Log) (int64, error) {
+func UpdateMateriel(materiel *Schema.Materiel, log *Schema.Log) int64 {
 	// 开启事务
 	tx, _ := db.DB.Begin()
 	// 修改物料数量
-	stms, err := tx.Prepare("update materiel set number=? where id=?")
+	stms, err := tx.Prepare("update materiel set name=?,number=?,description=? where id=?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
-	result, err := stms.Exec(materiel.Number, materiel.Id)
+	result, err := stms.Exec(materiel.Name, materiel.Number, materiel.Description, materiel.Id)
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
@@ -108,21 +158,22 @@ func UpdateMateriel(materiel Schema.Materiel, log Schema.Log) (int64, error) {
 	}
 
 	// 保存日志
-	stms, err = tx.Prepare("insert into log(materiel_id, number, type, remark, create_at) values(?, ?, ?, ?, ?)")
+	stms, err = tx.Prepare("insert into log(materiel_id, number, type, operator, operate_time, remark, create_at) values(?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
 	}
 
 	t := time.Now()
-	result, err = stms.Exec(log.Materiel_id, log.Number, log.Type, log.Remark, t.Unix())
+	result, err = stms.Exec(log.MaterielId, log.Number, log.Type, log.Operator, log.OperateTime, log.Remark, t.Unix())
 
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
 	}
-	_, err = result.LastInsertId()
-
+	insertLogId, err := result.LastInsertId()
+	log.Id = insertLogId
+	log.CreateAt = t.Unix()
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
@@ -131,5 +182,5 @@ func UpdateMateriel(materiel Schema.Materiel, log Schema.Log) (int64, error) {
 	stms.Close()
 	tx.Commit()
 
-	return affectedRow, err
+	return affectedRow
 }

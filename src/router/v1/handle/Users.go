@@ -47,7 +47,7 @@ func CheckLogin(c *gin.Context) {
 		c.Next()
 	} else {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "请先登录",
+			"error": "token已过期",
 		})
 	}
 }

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"materiel/src/util"
+	"strconv"
 )
 
 func main() {
-	fmt.Println(util.GetSha256Password("lvmingyin", "js91ec7r"))
+	fmt.Println(strconv.Itoa(10))
 }
