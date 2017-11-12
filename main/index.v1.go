@@ -8,7 +8,7 @@ import (
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	v1 := router.Group("/v1", handle.Filter)
+	v1 := router.Group("/v1", handle.Cors)
 	// 登录
 	v1.POST("/login", handle.UserLogin)
 	{
