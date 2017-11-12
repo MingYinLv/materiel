@@ -28,10 +28,15 @@ func FindList(filter util.SearchFilter) []Schema.Materiel {
 		buffer.WriteString(filter.Keyword)
 		buffer.WriteString("%'")
 	}
-	buffer.WriteString(" order by ")
-	buffer.WriteString(filter.SortBy)
-	buffer.WriteString(" ")
-	buffer.WriteString(filter.Order)
+	if filter.SortBy == "id" || filter.SortBy == "number" {
+		buffer.WriteString(" order by ")
+		buffer.WriteString(filter.SortBy)
+		buffer.WriteString(" ")
+	}
+
+	if filter.Order == "desc" || filter.Order == "asc" {
+		buffer.WriteString(filter.Order)
+	}
 	buffer.WriteString(" limit ")
 	buffer.WriteString(strconv.FormatInt((filter.Page-1)*filter.Size, 10))
 	buffer.WriteString(",")
@@ -42,7 +47,6 @@ func FindList(filter util.SearchFilter) []Schema.Materiel {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
 	defer stms.Close()
-
 	rows, err := stms.Query()
 	defer rows.Close()
 	if err != nil {
