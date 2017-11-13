@@ -8,13 +8,9 @@ import (
 
 var DB *sql.DB
 
-func init() {
-	Conn()
-}
-
-func Conn() {
+func MySqlConn(config *Mysql) {
 	var err error
-	DB, err = sql.Open("mysql", "root:root@tcp(localhost)/materiel")
+	DB, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/materiel", config.User, config.Password, config.Host))
 	if err != nil {
 		panic(err.Error())
 	}

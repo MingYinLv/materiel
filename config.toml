@@ -1,0 +1,6 @@
+
+[Mysql]
+Host = "localhost"
+User = "root"
+Password = "root"
+Port = 3306
