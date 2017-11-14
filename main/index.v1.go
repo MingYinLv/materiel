@@ -35,5 +35,6 @@ func main() {
 		materiel.GET("/:id", handle.GetMaterielById)
 
 	}
+	router.Static("/static", "../static")
 	router.Run(fmt.Sprintf(":%d", listenPort))
 }
