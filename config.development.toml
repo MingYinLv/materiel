@@ -1,4 +1,6 @@
 
+ListenPort = 3333
+
 [Mysql]
 Host = "localhost"
 User = "root"

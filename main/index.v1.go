@@ -1,14 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"materiel/src/router/v1/handle"
 	"materiel/src/config"
+	"materiel/src/router/v1/handle"
 )
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
-	config.Initial()
+	var listenPort int64
+	config.Initial(&listenPort)
 	router := gin.Default()
 	v1 := router.Group("/v1", handle.Cors)
 	// 登录
@@ -33,5 +35,5 @@ func main() {
 		materiel.GET("/:id", handle.GetMaterielById)
 
 	}
-	router.Run(":3333")
+	router.Run(fmt.Sprintf(":%d", listenPort))
 }
