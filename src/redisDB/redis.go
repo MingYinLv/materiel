@@ -8,11 +8,18 @@ import (
 
 var client *redis.Client
 
-func init() {
+type Redis struct {
+	Host     string
+	Password string
+	Port     int64
+	DB       int64
+}
+
+func RedisConn(config *Redis) {
 	client = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
+		Password: config.Password, // no password set
+		DB:       int(config.DB),  // use default DB
 	})
 
 	_, err := client.Ping().Result()

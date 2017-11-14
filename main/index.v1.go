@@ -3,10 +3,12 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"materiel/src/router/v1/handle"
+	"materiel/src/config"
 )
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
+	config.Initial()
 	router := gin.Default()
 	v1 := router.Group("/v1", handle.Cors)
 	// 登录

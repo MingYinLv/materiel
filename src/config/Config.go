@@ -1,25 +1,21 @@
-package db
+package config
 
 import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"os"
+	"materiel/src/redisDB"
+	"materiel/src/db"
 )
 
 type Config struct {
-	Mysql Mysql
+	Mysql db.Mysql
+	Redis redisDB.Redis
 }
 
-type Mysql struct {
-	Host     string
-	User     string
-	Password string
-	Port     int64
-}
-
-func init() {
-	data, err := ioutil.ReadFile("config.toml")
+func Initial() {
+	data, err := ioutil.ReadFile("config.development.toml")
 	if err != nil {
 		fmt.Println("配置文件读取失败")
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
@@ -35,5 +31,6 @@ func init() {
 
 	fmt.Println(config)
 
-	MySqlConn(&config.Mysql)
+	db.MySqlConn(&config.Mysql)
+	redisDB.RedisConn(&config.Redis)
 }

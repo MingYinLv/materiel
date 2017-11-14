@@ -1,0 +1,13 @@
+
+[Mysql]
+Host = "localhost"
+User = "root"
+Password = "root"
+DB = "materiel"
+Port = 3306
+
+[Redis]
+Host = "localhost"
+Password = "root"
+DB = 0
+Port = 6379
