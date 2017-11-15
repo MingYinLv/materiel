@@ -48,25 +48,25 @@ func FindList(filter util.SearchFilter) []Schema.Materiel {
 	}
 	defer stms.Close()
 	rows, err := stms.Query()
-	defer rows.Close()
 	if err != nil {
 		panic(err.Error())
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var materiel_id, number, create_at int64
-		var name, description string
-		err = rows.Scan(&materiel_id, &name, &number, &description, &create_at)
+		var name, description, change_log string
+		err = rows.Scan(&materiel_id, &name, &number, &change_log, &description, &create_at)
 		if err != nil {
 			panic(err.Error())
 		}
-		result = append(result, Schema.Materiel{materiel_id, name, number, description, create_at})
+		result = append(result, Schema.Materiel{materiel_id, name, number, change_log, description, create_at})
 	}
 	return result
 }
 
 func FindById(id int64) Schema.Materiel {
-	stms, err := db.DB.Prepare("SELECT id,name,number,description,create_at FROM materiel WHERE id = ?")
+	stms, err := db.DB.Prepare("SELECT id,name,number,change_log,description,create_at FROM materiel WHERE id = ?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
@@ -74,9 +74,9 @@ func FindById(id int64) Schema.Materiel {
 	row := stms.QueryRow(id)
 
 	var materiel_id, number, create_at int64
-	var name, description string
+	var name, description, change_log string
 
-	err = row.Scan(&materiel_id, &name, &number, &description, &create_at)
+	err = row.Scan(&materiel_id, &name, &number, &change_log, &description, &create_at)
 	if err == sql.ErrNoRows {
 		stms.Close()
 		return Schema.Materiel{Id: 0}
@@ -84,18 +84,18 @@ func FindById(id int64) Schema.Materiel {
 		panic(err.Error())
 	}
 	stms.Close()
-	return Schema.Materiel{materiel_id, name, number, description, create_at}
+	return Schema.Materiel{materiel_id, name, number, change_log, description, create_at}
 }
 
 func AddMateriel(materiel *Schema.Materiel, log *Schema.Log) int64 {
 	tx, _ := db.DB.Begin()
-	stms, err := tx.Prepare("insert into materiel(name, number, description, create_at) values(?, ?, ?, ?)")
+	stms, err := tx.Prepare("insert into materiel(name, number, change_log, description, create_at) values(?, ?, ?, ?, ?)")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
 
 	unix := time.Now().Unix()
-	result, err := stms.Exec(materiel.Name, materiel.Number, materiel.Description, unix)
+	result, err := stms.Exec(materiel.Name, materiel.Number, materiel.Number, materiel.Description, unix)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -143,11 +143,11 @@ func UpdateMateriel(materiel *Schema.Materiel, log *Schema.Log) int64 {
 	// 开启事务
 	tx, _ := db.DB.Begin()
 	// 修改物料数量
-	stms, err := tx.Prepare("update materiel set name=?,number=?,description=? where id=?")
+	stms, err := tx.Prepare("update materiel set name=?,number=?,change_log=CONCAT(change_log, \",\" ,?),description=? where id=?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
-	result, err := stms.Exec(materiel.Name, materiel.Number, materiel.Description, materiel.Id)
+	result, err := stms.Exec(materiel.Name, materiel.Number, materiel.Number, materiel.Description, materiel.Id)
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())

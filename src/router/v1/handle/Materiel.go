@@ -36,6 +36,7 @@ func UpdateMateriel(c *gin.Context) {
 				return
 			}
 			name := c.PostForm("name")
+			change_log := c.PostForm("change_log")
 			description := c.PostForm("description")
 			number, _ := govalidator.ToInt(c.PostForm("number"))
 			operator := c.PostForm("operator")
@@ -71,6 +72,7 @@ func UpdateMateriel(c *gin.Context) {
 				Number:      quantity,
 				Description: description,
 				CreateAt:    find.CreateAt,
+				ChangeLog:   fmt.Sprintf("%s,%d", change_log, quantity),
 			}
 			log := Schema.Log{
 				MaterielId:  materielId,

@@ -10,6 +10,6 @@ Port = 3306
 
 [Redis]
 Host = "localhost"
-Password = "root"
+Password = ""
 DB = 0
 Port = 6379
