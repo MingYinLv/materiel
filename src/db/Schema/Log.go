@@ -1,7 +1,8 @@
 package Schema
 
 const (
-	INSERT = iota
+	ALL = iota
+	INSERT
 	UPDATE
 	IN
 	OUT

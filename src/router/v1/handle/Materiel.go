@@ -132,9 +132,15 @@ func GetMaterielList(c *gin.Context) {
 			})
 		}
 	}()
+
+	data := Materiel.FindList(searchFilter)
+	if len(data) == 0 {
+		data = []Schema.Materiel{}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "查询成功",
-		"data": Materiel.FindList(searchFilter),
+		"data": data,
 	})
 }
 

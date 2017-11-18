@@ -13,6 +13,7 @@ type SearchFilter struct {
 	SortBy  string // 排序字段
 	Order   string // 排序顺序
 	Type    int64  // 查询类型
+	Id		int64  // 查询ID
 }
 
 func GetDefaultSearchFilter() SearchFilter {
@@ -22,6 +23,7 @@ func GetDefaultSearchFilter() SearchFilter {
 		1,
 		"id",
 		"asc",
+		0,
 		0,
 	}
 }
@@ -36,6 +38,9 @@ func GetSearchFilter(c *gin.Context) SearchFilter {
 	}
 	if val, ok := c.GetQuery("type"); ok && govalidator.IsInt(val) {
 		searchFilter.Type, _ = govalidator.ToInt(val)
+	}
+	if val, ok := c.GetQuery("id"); ok && govalidator.IsInt(val) {
+		searchFilter.Id, _ = govalidator.ToInt(val)
 	}
 	if val, ok := c.GetQuery("sortby"); ok && strings.TrimSpace(val) != "" {
 		searchFilter.SortBy = val

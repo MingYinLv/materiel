@@ -33,7 +33,11 @@ func main() {
 		materiel.PUT("/:id", handle.UpdateMateriel)
 		// 获取物料信息
 		materiel.GET("/:id", handle.GetMaterielById)
-
+	}
+	{
+		log := v1.Group("/logs")
+		log.GET("/:id", handle.GetLogById)
+		log.GET("", handle.GetLogList)
 	}
 	router.Static("/static", "../static")
 	router.Run(fmt.Sprintf(":%d", listenPort))
