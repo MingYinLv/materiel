@@ -13,6 +13,7 @@ func main() {
 	config.Initial(&listenPort)
 	router := gin.Default()
 	v1 := router.Group("/v1", handle.Cors)
+	router.OPTIONS("/:path(/:path1(/:path2))", handle.Cors)
 	// 登录
 	v1.POST("/login", handle.UserLogin)
 	{
@@ -28,9 +29,9 @@ func main() {
 		// 查询列表
 		materiel.GET("", handle.GetMaterielList)
 		// 添加物料
-		materiel.POST("", handle.AddMateriel)
+		materiel.POST("", handle.CheckLogin, handle.AddMateriel)
 		// 修改物料
-		materiel.PUT("/:id", handle.UpdateMateriel)
+		materiel.PUT("/:id", handle.CheckLogin, handle.UpdateMateriel)
 		// 获取物料信息
 		materiel.GET("/:id", handle.GetMaterielById)
 	}

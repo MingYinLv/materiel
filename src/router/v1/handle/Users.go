@@ -31,7 +31,14 @@ func (td *TokenData) MarshalBinary() (data []byte, err error) {
 
 func CheckLogin(c *gin.Context) {
 	token := c.GetHeader("Authorization")
-	result := redisDB.Get(util.RsaDecode(token))
+	decode, err := util.RsaDecode(token)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "token错误，请登录",
+		})
+		return
+	}
+	result := redisDB.Get(decode)
 	if result == redis.Nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"error": "请先登录",

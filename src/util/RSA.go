@@ -27,7 +27,6 @@ Z/XlSrWDf39zAgMBAAE=
 
 `)
 
-
 func RsaEncrypt(origData []byte) ([]byte, error) {
 	block, _ := pem.Decode(publicKey)
 	if block == nil {
@@ -106,14 +105,14 @@ func RsaEncode(data interface{}) string {
 	return hex.EncodeToString(tokenByte)
 }
 
-func RsaDecode(data string) string {
+func RsaDecode(data string) (string, error) {
 	tokenByte, err := hex.DecodeString(data)
 	if err != nil {
 		panic(err)
 	}
 	tokenByte1, err := RsaDecrypt(tokenByte)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return string(tokenByte1)
+	return string(tokenByte1), nil
 }
