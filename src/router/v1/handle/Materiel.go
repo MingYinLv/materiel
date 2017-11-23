@@ -92,8 +92,11 @@ func UpdateMateriel(c *gin.Context) {
 			}()
 			Materiel.UpdateMateriel(&materiel, &log)
 			c.JSON(http.StatusOK, gin.H{
-				"materiel": materiel,
-				"log":      log,
+				"msg": "操作成功",
+				"data": gin.H{
+					"materiel": materiel,
+					"log":      log,
+				},
 			})
 		}
 	} else {
@@ -113,7 +116,10 @@ func GetMaterielById(c *gin.Context) {
 				"error": "该物料不存在",
 			})
 		} else {
-			c.JSON(http.StatusOK, materiel)
+			c.JSON(http.StatusOK, gin.H{
+				"msg":  "查询成功",
+				"data": materiel,
+			})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -185,8 +191,11 @@ func AddMateriel(c *gin.Context) {
 		}()
 		Materiel.AddMateriel(&materiel, &log)
 		c.JSON(http.StatusOK, gin.H{
-			"materiel": materiel,
-			"log":      log,
+			"msg": "查询成功",
+			"data": gin.H{
+				"materiel": materiel,
+				"log":      log,
+			},
 		})
 	}
 }

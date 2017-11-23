@@ -13,7 +13,10 @@ func main() {
 	config.Initial(&listenPort)
 	router := gin.Default()
 	v1 := router.Group("/v1", handle.Cors)
-	router.OPTIONS("/:path(/:path1(/:path2))", handle.Cors)
+	//router.OPTIONS("/:path(/:path1(/:path2))", handle.Cors)
+	router.OPTIONS("/:path", handle.Cors)
+	router.OPTIONS("/:path/:path1", handle.Cors)
+	router.OPTIONS("/:path/:path1/:path2", handle.Cors)
 	// 登录
 	v1.POST("/login", handle.UserLogin)
 	{

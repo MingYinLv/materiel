@@ -62,7 +62,10 @@ func CheckLogin(c *gin.Context) {
 func Info(c *gin.Context) {
 	if td, ok := c.Get("td"); ok {
 		u := td.(TokenData)
-		c.JSON(http.StatusOK, u.User)
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "查询成功",
+			"data": u.User,
+		})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "错误请求",
@@ -84,11 +87,13 @@ func RefreshToken(c *gin.Context) {
 					User:          u.User,
 				}, time.Hour)
 				c.JSON(http.StatusOK, gin.H{
-					"msg":           "token获取成功",
-					"access_token":  token,
-					"token_type":    "login",
-					"expires_in":    3600,
-					"refresh_token": refresh_token,
+					"msg": "token获取成功",
+					"data": gin.H{
+						"access_token":  token,
+						"token_type":    "login",
+						"expires_in":    3600,
+						"refresh_token": refresh_token,
+					},
 				})
 			} else {
 				c.JSON(http.StatusBadRequest, gin.H{
@@ -123,11 +128,13 @@ func UserLogin(c *gin.Context) {
 				User:          u,
 			}, time.Hour)
 			c.JSON(http.StatusOK, gin.H{
-				"msg":           "登录成功",
-				"access_token":  token,
-				"token_type":    "login",
-				"expires_in":    3600,
-				"refresh_token": refresh_token,
+				"msg": "登录成功",
+				"data": gin.H{
+					"access_token":  token,
+					"token_type":    "login",
+					"expires_in":    3600,
+					"refresh_token": refresh_token,
+				},
 			})
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{

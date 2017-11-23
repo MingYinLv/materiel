@@ -12,13 +12,16 @@ import (
 func GetLogById(c *gin.Context) {
 	if id := c.Param("id"); govalidator.IsInt(id) {
 		intId, _ := govalidator.ToInt(id)
-		materiel := Log.FindById(intId)
-		if materiel.Id == 0 {
+		log := Log.FindById(intId)
+		if log.Id == 0 {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "该日志不存在",
 			})
 		} else {
-			c.JSON(http.StatusOK, materiel)
+			c.JSON(http.StatusOK, gin.H{
+				"msg":  "查询成功",
+				"data": log,
+			})
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
