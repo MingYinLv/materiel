@@ -34,7 +34,7 @@ func CheckLogin(c *gin.Context) {
 	decode, err := util.RsaDecode(token)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "token错误，请登录",
+			"error": "登录信息错误，请重新登录",
 		})
 		return
 	}
