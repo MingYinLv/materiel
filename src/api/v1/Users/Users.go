@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func FindUserByUsername(name string) Schema.User {
+func FindUserByUsername(name string) (Schema.User, error) {
 	stms, err := db.DB.Prepare("SELECT id,username,password,nickname,salt,create_at FROM users WHERE username = ?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
@@ -19,10 +19,10 @@ func FindUserByUsername(name string) Schema.User {
 
 	err = row.Scan(&user_id, &username, &password, &nickname, &salt, &create_at)
 	if err != nil {
-		panic(err.Error())
+		return Schema.User{}, err
 	}
 	stms.Close()
-	return Schema.User{user_id, username, password, nickname, salt, create_at}
+	return Schema.User{user_id, username, password, nickname, salt, create_at}, nil
 }
 
 func FindUserById(id int64) Schema.User {

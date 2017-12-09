@@ -16,6 +16,8 @@ import (
 	"materiel/src/redisDB"
 	"strconv"
 	"time"
+	"database/sql"
+	"fmt"
 )
 
 type TokenData struct {
@@ -31,6 +33,12 @@ func (td *TokenData) MarshalBinary() (data []byte, err error) {
 
 func CheckLogin(c *gin.Context) {
 	token := c.GetHeader("Authorization")
+	if token == ""{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "请先登录",
+		})
+		return
+	}
 	decode, err := util.RsaDecode(token)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -117,7 +125,20 @@ func RefreshToken(c *gin.Context) {
 
 func UserLogin(c *gin.Context) {
 	if val, b := c.GetPostForm("username"); b && strings.TrimSpace(val) != "" {
-		u := Users.FindUserByUsername(val)
+		u, err := Users.FindUserByUsername(val)
+		if err != nil{
+			if err == sql.ErrNoRows{
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error":  fmt.Sprintf("用户%s不存在", val),
+					"detail": []map[string]string{{"message": "no exits", "title": "username"}},
+				})
+			}else{
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error":  "登录失败",
+				})
+			}
+			return
+		}
 		pwd := util.GetSha256Password(c.PostForm("password"), u.Salt)
 		if pwd == u.Password {
 			token := util.RsaEncode(u.User_id)
