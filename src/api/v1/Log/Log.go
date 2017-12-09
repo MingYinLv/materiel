@@ -19,10 +19,10 @@ func FindById(id int64) Schema.Log {
 
 	row := stms.QueryRow(id)
 
-	var log_id, materiel_id, number, log_type, create_at, operate_time int64
+	var log_id, materiel_id, number, quantity, log_type, create_at, operate_time int64
 	var operator, remark string
 
-	err = row.Scan(&log_id, &materiel_id, &number, &log_type, &operator, &operate_time, &remark, &create_at)
+	err = row.Scan(&log_id, &materiel_id, &number, &quantity, &log_type, &operator, &operate_time, &remark, &create_at)
 	if err == sql.ErrNoRows {
 		stms.Close()
 		return Schema.Log{Id: 0}
@@ -30,7 +30,7 @@ func FindById(id int64) Schema.Log {
 		panic(err.Error())
 	}
 	stms.Close()
-	return Schema.Log{log_id, materiel_id, number, log_type, operator, operate_time, remark, create_at}
+	return Schema.Log{log_id, materiel_id, number, quantity, log_type, operator, operate_time, remark, create_at}
 }
 
 func FindList(filter util.SearchFilter) []Schema.Log {
@@ -59,10 +59,12 @@ func FindList(filter util.SearchFilter) []Schema.Log {
 		buffer.WriteString(" ")
 		buffer.WriteString(filter.Order)
 	}
-	buffer.WriteString(" limit ")
-	buffer.WriteString(strconv.FormatInt((filter.Page-1)*filter.Size, 10))
-	buffer.WriteString(",")
-	buffer.WriteString(strconv.FormatInt(filter.Size, 10))
+	if filter.Limit{
+		buffer.WriteString(" limit ")
+		buffer.WriteString(strconv.FormatInt((filter.Page-1)*filter.Size, 10))
+		buffer.WriteString(",")
+		buffer.WriteString(strconv.FormatInt(filter.Size, 10))
+	}
 	fmt.Println(buffer.String())
 	stms, err := db.DB.Prepare(buffer.String())
 	if err != nil {
@@ -76,14 +78,14 @@ func FindList(filter util.SearchFilter) []Schema.Log {
 	defer rows.Close()
 
 	for rows.Next() {
-		var log_id, materiel_id, number, log_type, create_at, operate_time int64
+		var log_id, materiel_id, number, quantity, log_type, create_at, operate_time int64
 		var operator, remark string
 
-		err = rows.Scan(&log_id, &materiel_id, &number, &log_type, &operator, &operate_time, &remark, &create_at)
+		err = rows.Scan(&log_id, &materiel_id, &number, &quantity, &log_type, &operator, &operate_time, &remark, &create_at)
 		if err != nil {
 			panic(err.Error())
 		}
-		result = append(result, Schema.Log{log_id, materiel_id, number, log_type, operator, operate_time, remark, create_at})
+		result = append(result, Schema.Log{log_id, materiel_id, number, quantity, log_type, operator, operate_time, remark, create_at})
 	}
 	return result
 }

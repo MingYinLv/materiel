@@ -16,7 +16,6 @@ import (
 	"materiel/src/redisDB"
 	"strconv"
 	"time"
-	"database/sql"
 	"fmt"
 )
 
@@ -125,18 +124,12 @@ func RefreshToken(c *gin.Context) {
 
 func UserLogin(c *gin.Context) {
 	if val, b := c.GetPostForm("username"); b && strings.TrimSpace(val) != "" {
-		u, err := Users.FindUserByUsername(val)
-		if err != nil{
-			if err == sql.ErrNoRows{
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error":  fmt.Sprintf("用户%s不存在", val),
-					"detail": []map[string]string{{"message": "no exits", "title": "username"}},
-				})
-			}else{
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error":  "登录失败",
-				})
-			}
+		u := Users.FindUserByUsername(val)
+		if u.User_id  == 0{
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":  fmt.Sprintf("用户%s不存在", val),
+				"detail": []map[string]string{{"message": "no exits", "title": "username"}},
+			})
 			return
 		}
 		pwd := util.GetSha256Password(c.PostForm("password"), u.Salt)

@@ -9,6 +9,7 @@ import (
 	"materiel/src/util"
 	"net/http"
 	"time"
+	"materiel/src/api/v1/Log"
 )
 
 func UpdateMateriel(c *gin.Context) {
@@ -77,6 +78,7 @@ func UpdateMateriel(c *gin.Context) {
 			log := Schema.Log{
 				MaterielId:  materielId,
 				Number:      number,
+				Quantity:	 quantity,
 				Type:        logType,
 				OperateTime: operate_time.Unix(),
 				Operator:    operator,
@@ -116,9 +118,19 @@ func GetMaterielById(c *gin.Context) {
 				"error": "该物料不存在",
 			})
 		} else {
+			searchFilter := util.GetSearchFilter(c)
+			searchFilter.Id = intId
+			with := c.DefaultQuery("with", "")
+			var logs []Schema.Log
+			if with == "log"{
+				logs = Log.FindList(searchFilter)
+			}
 			c.JSON(http.StatusOK, gin.H{
 				"msg":  "查询成功",
-				"data": materiel,
+				"data": gin.H{
+					"materiel": materiel,
+					"logs": logs,
+				},
 			})
 		}
 	} else {
@@ -176,6 +188,7 @@ func AddMateriel(c *gin.Context) {
 		numberInt, _ := govalidator.ToInt(number)
 		log := Schema.Log{
 			Number:      numberInt,
+			Quantity:	numberInt,
 			Type:        Schema.INSERT,
 			OperateTime: operate_time.Unix(),
 			Operator:    operator,

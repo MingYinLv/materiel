@@ -37,10 +37,12 @@ func FindList(filter util.SearchFilter) []Schema.Materiel {
 	if filter.Order == "desc" || filter.Order == "asc" {
 		buffer.WriteString(filter.Order)
 	}
-	buffer.WriteString(" limit ")
-	buffer.WriteString(strconv.FormatInt((filter.Page-1)*filter.Size, 10))
-	buffer.WriteString(",")
-	buffer.WriteString(strconv.FormatInt(filter.Size, 10))
+	if filter.Limit {
+		buffer.WriteString(" limit ")
+		buffer.WriteString(strconv.FormatInt((filter.Page-1)*filter.Size, 10))
+		buffer.WriteString(",")
+		buffer.WriteString(strconv.FormatInt(filter.Size, 10))
+	}
 	fmt.Println(buffer.String())
 	stms, err := db.DB.Prepare(buffer.String())
 	if err != nil {

@@ -4,9 +4,10 @@ import "materiel/src/db/Schema"
 import (
 	"materiel/src/db"
 	"time"
+	"database/sql"
 )
 
-func FindUserByUsername(name string) (Schema.User, error) {
+func FindUserByUsername(name string) Schema.User {
 	stms, err := db.DB.Prepare("SELECT id,username,password,nickname,salt,create_at FROM users WHERE username = ?")
 	if err != nil {
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
@@ -18,11 +19,13 @@ func FindUserByUsername(name string) (Schema.User, error) {
 	var username, password, nickname, salt string
 
 	err = row.Scan(&user_id, &username, &password, &nickname, &salt, &create_at)
-	if err != nil {
-		return Schema.User{}, err
+	if err == sql.ErrNoRows{
+		return Schema.User{User_id:0}
+	} else if err != nil {
+		panic(err.Error())
 	}
 	stms.Close()
-	return Schema.User{user_id, username, password, nickname, salt, create_at}, nil
+	return Schema.User{user_id, username, password, nickname, salt, create_at}
 }
 
 func FindUserById(id int64) Schema.User {
@@ -37,7 +40,9 @@ func FindUserById(id int64) Schema.User {
 	var username, password, nickname, salt string
 
 	err = row.Scan(&user_id, &username, &password, &nickname, &salt, &create_at)
-	if err != nil {
+	if err == sql.ErrNoRows{
+		return Schema.User{User_id:0}
+	} else if err != nil {
 		panic(err.Error())
 	}
 	stms.Close()

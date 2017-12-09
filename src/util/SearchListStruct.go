@@ -14,6 +14,7 @@ type SearchFilter struct {
 	Order   string // 排序顺序
 	Type    int64  // 查询类型
 	Id		int64  // 查询ID
+	Limit	bool	   // 是否限制
 }
 
 func GetDefaultSearchFilter() SearchFilter {
@@ -25,6 +26,7 @@ func GetDefaultSearchFilter() SearchFilter {
 		"asc",
 		0,
 		0,
+		true,
 	}
 }
 
@@ -33,8 +35,12 @@ func GetSearchFilter(c *gin.Context) SearchFilter {
 	if val, ok := c.GetQuery("page"); ok && govalidator.IsInt(val) {
 		searchFilter.Page, _ = govalidator.ToInt(val)
 	}
-	if val, ok := c.GetQuery("size"); ok && govalidator.IsInt(val) {
-		searchFilter.Size, _ = govalidator.ToInt(val)
+	if val, ok := c.GetQuery("size"); ok {
+		if govalidator.IsInt(val){
+			searchFilter.Size, _ = govalidator.ToInt(val)
+		}else if val == "all"{
+			searchFilter.Limit = false
+		}
 	}
 	if val, ok := c.GetQuery("type"); ok && govalidator.IsInt(val) {
 		searchFilter.Type, _ = govalidator.ToInt(val)
