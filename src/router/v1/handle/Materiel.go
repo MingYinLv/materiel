@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
+	"materiel/src/api/v1/Log"
 	"materiel/src/api/v1/Materiel"
 	"materiel/src/db/Schema"
 	"materiel/src/util"
 	"net/http"
 	"time"
-	"materiel/src/api/v1/Log"
 )
 
 func UpdateMateriel(c *gin.Context) {
@@ -78,7 +78,7 @@ func UpdateMateriel(c *gin.Context) {
 			log := Schema.Log{
 				MaterielId:  materielId,
 				Number:      number,
-				Quantity:	 quantity,
+				Quantity:    quantity,
 				Type:        logType,
 				OperateTime: operate_time.Unix(),
 				Operator:    operator,
@@ -122,14 +122,14 @@ func GetMaterielById(c *gin.Context) {
 			searchFilter.Id = intId
 			with := c.DefaultQuery("with", "")
 			var logs []Schema.Log
-			if with == "log"{
+			if with == "log" {
 				logs = Log.FindList(searchFilter)
 			}
 			c.JSON(http.StatusOK, gin.H{
-				"msg":  "查询成功",
+				"msg": "查询成功",
 				"data": gin.H{
 					"materiel": materiel,
-					"logs": logs,
+					"logs":     logs,
 				},
 			})
 		}
@@ -188,15 +188,16 @@ func AddMateriel(c *gin.Context) {
 		numberInt, _ := govalidator.ToInt(number)
 		log := Schema.Log{
 			Number:      numberInt,
-			Quantity:	numberInt,
+			Quantity:    numberInt,
 			Type:        Schema.INSERT,
 			OperateTime: operate_time.Unix(),
 			Operator:    operator,
 			Remark:      c.PostForm("remark"),
 		}
-		materiel := Schema.Materiel{Name: name, Number: numberInt, Description: c.PostForm("description")}
+		materiel := Schema.Materiel{Name: name, Number: numberInt, ChangeLog: number, Description: c.PostForm("description")}
 		defer func() {
 			if err := recover(); err != nil {
+				fmt.Println(err)
 				c.JSON(http.StatusBadRequest, gin.H{
 					"error": "物料添加失败",
 				})
@@ -204,11 +205,32 @@ func AddMateriel(c *gin.Context) {
 		}()
 		Materiel.AddMateriel(&materiel, &log)
 		c.JSON(http.StatusOK, gin.H{
-			"msg": "查询成功",
+			"msg": "添加成功",
 			"data": gin.H{
 				"materiel": materiel,
 				"log":      log,
 			},
+		})
+	}
+}
+
+func DeleteMaterielById(c *gin.Context) {
+	if id := c.Param("id"); govalidator.IsInt(id) {
+		intId, _ := govalidator.ToInt(id)
+		_, err := Materiel.DeleteMaterielById(intId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "该用户不存在",
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":  "删除成功",
+				"data": "[]",
+			})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "该用户不存在",
 		})
 	}
 }

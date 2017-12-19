@@ -37,6 +37,8 @@ func main() {
 		materiel.PUT("/:id", handle.CheckLogin, handle.UpdateMateriel)
 		// 获取物料信息
 		materiel.GET("/:id", handle.GetMaterielById)
+		// 删除物料信息
+		materiel.DELETE("/:id", handle.CheckLogin, handle.DeleteMaterielById)
 	}
 	{
 		log := v1.Group("/logs")

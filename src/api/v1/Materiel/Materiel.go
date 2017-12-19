@@ -110,13 +110,13 @@ func AddMateriel(materiel *Schema.Materiel, log *Schema.Log) int64 {
 	}
 	stms.Close()
 
-	stms, err = tx.Prepare("insert into log(materiel_id, number, type,operator,operate_time, remark, create_at) values(?, ?,?,?, ?, ?, ?)")
+	stms, err = tx.Prepare("insert into log(materiel_id, number,quantity, type,operator,operate_time, remark, create_at) values(?, ?,?,?,?, ?, ?, ?)")
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
 	}
 
-	result, err = stms.Exec(insertId, log.Number, log.Type, log.Operator, log.OperateTime, log.Remark, unix)
+	result, err = stms.Exec(insertId, log.Number, log.Quantity, log.Type, log.Operator, log.OperateTime, log.Remark, unix)
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error())
@@ -189,4 +189,32 @@ func UpdateMateriel(materiel *Schema.Materiel, log *Schema.Log) int64 {
 	tx.Commit()
 
 	return affectedRow
+}
+
+func DeleteMaterielById(id int64) (int64, error) {
+	tx, _ := db.DB.Begin()
+	stms, err := tx.Prepare("delete from materiel WHERE id = ?")
+	if err != nil {
+		tx.Rollback()
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	defer stms.Close()
+
+	result, err := stms.Exec(id)
+	if err != nil {
+		tx.Rollback()
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	stms, err = tx.Prepare("delete from logs WHERE materiel_id = ?")
+	if err != nil {
+		tx.Rollback()
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	_, err = stms.Exec(id)
+	if err != nil {
+		tx.Rollback()
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	tx.Commit()
+	return result.RowsAffected()
 }
