@@ -12,18 +12,21 @@ import (
 	"strings"
 	//"materiel/src/redisDB"
 	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis"
 	"materiel/src/redisDB"
 	"strconv"
 	"time"
-	"fmt"
 )
 
 type TokenData struct {
 	User          Schema.User `json:"user"`
 	Token         string      `json:"token"`
 	Refresh_Token string      `json:"refresh_token"`
+	Token_Type    string      `json:"token_type"`
 }
+
+const tokenTime = 60 * 60 * 24 * 30
 
 func (td *TokenData) MarshalBinary() (data []byte, err error) {
 	data, err = json.Marshal(td)
@@ -32,7 +35,7 @@ func (td *TokenData) MarshalBinary() (data []byte, err error) {
 
 func CheckLogin(c *gin.Context) {
 	token := c.GetHeader("Authorization")
-	if token == ""{
+	if token == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"error": "请先登录",
 		})
@@ -91,6 +94,7 @@ func RefreshToken(c *gin.Context) {
 				redisDB.Set(strconv.FormatInt(u.User.User_id, 10), &TokenData{
 					Token:         token,
 					Refresh_Token: refresh_token,
+					Token_Type:    "login",
 					User:          u.User,
 				}, time.Hour)
 				c.JSON(http.StatusOK, gin.H{
@@ -98,7 +102,7 @@ func RefreshToken(c *gin.Context) {
 					"data": gin.H{
 						"access_token":  token,
 						"token_type":    "login",
-						"expires_in":    3600,
+						"expires_in":    tokenTime,
 						"refresh_token": refresh_token,
 					},
 				})
@@ -125,7 +129,7 @@ func RefreshToken(c *gin.Context) {
 func UserLogin(c *gin.Context) {
 	if val, b := c.GetPostForm("username"); b && strings.TrimSpace(val) != "" {
 		u := Users.FindUserByUsername(val)
-		if u.User_id  == 0{
+		if u.User_id == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":  fmt.Sprintf("用户%s不存在", val),
 				"detail": []map[string]string{{"message": "no exits", "title": "username"}},
@@ -139,14 +143,15 @@ func UserLogin(c *gin.Context) {
 			redisDB.Set(strconv.FormatInt(u.User_id, 10), &TokenData{
 				Token:         token,
 				Refresh_Token: refresh_token,
+				Token_Type:    "login",
 				User:          u,
-			}, time.Hour)
+			}, time.Second*tokenTime)
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "登录成功",
 				"data": gin.H{
 					"access_token":  token,
 					"token_type":    "login",
-					"expires_in":    3600,
+					"expires_in":    tokenTime,
 					"refresh_token": refresh_token,
 				},
 			})
