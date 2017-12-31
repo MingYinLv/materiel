@@ -205,7 +205,7 @@ func DeleteMaterielById(id int64) (int64, error) {
 		tx.Rollback()
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
 	}
-	stms, err = tx.Prepare("delete from logs WHERE materiel_id = ?")
+	stms, err = tx.Prepare("delete from log WHERE materiel_id = ?")
 	if err != nil {
 		tx.Rollback()
 		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
